@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea9 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend9 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series9 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.button_Train = new System.Windows.Forms.Button();
             this.button_Predict = new System.Windows.Forms.Button();
             this.trackBar_windowSize = new System.Windows.Forms.TrackBar();
@@ -53,10 +53,16 @@
             this.checkBox_tuneMode = new System.Windows.Forms.CheckBox();
             this.trackBar_chartScale = new System.Windows.Forms.TrackBar();
             this.label_chartScale = new System.Windows.Forms.Label();
+            this.button_TrainFromFileList = new System.Windows.Forms.Button();
+            this.button_PredictFromModelDataList = new System.Windows.Forms.Button();
+            this.trackBar_averageSize = new System.Windows.Forms.TrackBar();
+            this.label_averageSize = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_windowSize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_threshold)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart_Graph)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_chartScale)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar_averageSize)).BeginInit();
             this.SuspendLayout();
             // 
             // button_Train
@@ -81,18 +87,19 @@
             // 
             // trackBar_windowSize
             // 
-            this.trackBar_windowSize.Location = new System.Drawing.Point(174, 30);
+            this.trackBar_windowSize.Location = new System.Drawing.Point(174, 13);
             this.trackBar_windowSize.Maximum = 16;
             this.trackBar_windowSize.Name = "trackBar_windowSize";
             this.trackBar_windowSize.Size = new System.Drawing.Size(222, 56);
             this.trackBar_windowSize.TabIndex = 2;
+            this.trackBar_windowSize.Value = 16;
             this.trackBar_windowSize.Scroll += new System.EventHandler(this.trackBar_windowSize_Scroll);
             this.trackBar_windowSize.ValueChanged += new System.EventHandler(this.trackBar_windowSize_Scroll);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(172, 12);
+            this.label1.Location = new System.Drawing.Point(100, 16);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(80, 15);
             this.label1.TabIndex = 3;
@@ -100,17 +107,18 @@
             // 
             // trackBar_threshold
             // 
-            this.trackBar_threshold.Location = new System.Drawing.Point(174, 119);
+            this.trackBar_threshold.Location = new System.Drawing.Point(174, 52);
             this.trackBar_threshold.Name = "trackBar_threshold";
             this.trackBar_threshold.Size = new System.Drawing.Size(222, 56);
             this.trackBar_threshold.TabIndex = 2;
+            this.trackBar_threshold.Value = 3;
             this.trackBar_threshold.Scroll += new System.EventHandler(this.trackBar_threshold_Scroll);
             this.trackBar_threshold.ValueChanged += new System.EventHandler(this.trackBar_threshold_Scroll);
             // 
             // label_thresholdTitle
             // 
             this.label_thresholdTitle.AutoSize = true;
-            this.label_thresholdTitle.Location = new System.Drawing.Point(172, 101);
+            this.label_thresholdTitle.Location = new System.Drawing.Point(113, 59);
             this.label_thresholdTitle.Name = "label_thresholdTitle";
             this.label_thresholdTitle.Size = new System.Drawing.Size(66, 15);
             this.label_thresholdTitle.TabIndex = 3;
@@ -119,7 +127,7 @@
             // label_windowSizeValue
             // 
             this.label_windowSizeValue.AutoSize = true;
-            this.label_windowSizeValue.Location = new System.Drawing.Point(402, 33);
+            this.label_windowSizeValue.Location = new System.Drawing.Point(402, 16);
             this.label_windowSizeValue.Name = "label_windowSizeValue";
             this.label_windowSizeValue.Size = new System.Drawing.Size(15, 15);
             this.label_windowSizeValue.TabIndex = 3;
@@ -128,7 +136,7 @@
             // label_thresholdValue
             // 
             this.label_thresholdValue.AutoSize = true;
-            this.label_thresholdValue.Location = new System.Drawing.Point(402, 122);
+            this.label_thresholdValue.Location = new System.Drawing.Point(402, 55);
             this.label_thresholdValue.Name = "label_thresholdValue";
             this.label_thresholdValue.Size = new System.Drawing.Size(15, 15);
             this.label_thresholdValue.TabIndex = 3;
@@ -136,23 +144,23 @@
             // 
             // chart_Graph
             // 
-            chartArea4.Name = "ChartArea1";
-            this.chart_Graph.ChartAreas.Add(chartArea4);
-            legend4.Name = "Legend1";
-            this.chart_Graph.Legends.Add(legend4);
+            chartArea9.Name = "ChartArea1";
+            this.chart_Graph.ChartAreas.Add(chartArea9);
+            legend9.Name = "Legend1";
+            this.chart_Graph.Legends.Add(legend9);
             this.chart_Graph.Location = new System.Drawing.Point(12, 181);
             this.chart_Graph.Name = "chart_Graph";
-            series4.ChartArea = "ChartArea1";
-            series4.Legend = "Legend1";
-            series4.Name = "Series1";
-            this.chart_Graph.Series.Add(series4);
+            series9.ChartArea = "ChartArea1";
+            series9.Legend = "Legend1";
+            series9.Name = "Series1";
+            this.chart_Graph.Series.Add(series9);
             this.chart_Graph.Size = new System.Drawing.Size(860, 426);
             this.chart_Graph.TabIndex = 4;
             this.chart_Graph.Text = "chart1";
             // 
             // textBox_windowSizeList
             // 
-            this.textBox_windowSizeList.Location = new System.Drawing.Point(437, 64);
+            this.textBox_windowSizeList.Location = new System.Drawing.Point(437, 82);
             this.textBox_windowSizeList.Name = "textBox_windowSizeList";
             this.textBox_windowSizeList.Size = new System.Drawing.Size(417, 22);
             this.textBox_windowSizeList.TabIndex = 5;
@@ -195,9 +203,9 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(12, 760);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(95, 15);
+            this.label4.Size = new System.Drawing.Size(160, 15);
             this.label4.TabIndex = 3;
-            this.label4.Text = "ModelFilePath";
+            this.label4.Text = "ModelDataDir / FilePath";
             // 
             // textBox_ModelFilePath
             // 
@@ -267,6 +275,56 @@
             this.label_chartScale.TabIndex = 3;
             this.label_chartScale.Text = "-";
             // 
+            // button_TrainFromFileList
+            // 
+            this.button_TrainFromFileList.Location = new System.Drawing.Point(12, 675);
+            this.button_TrainFromFileList.Name = "button_TrainFromFileList";
+            this.button_TrainFromFileList.Size = new System.Drawing.Size(175, 39);
+            this.button_TrainFromFileList.TabIndex = 1;
+            this.button_TrainFromFileList.Text = "TrainFromFileList";
+            this.button_TrainFromFileList.UseVisualStyleBackColor = true;
+            this.button_TrainFromFileList.Click += new System.EventHandler(this.button_TrainFromFileList_Click);
+            // 
+            // button_PredictFromModelDataList
+            // 
+            this.button_PredictFromModelDataList.Location = new System.Drawing.Point(221, 675);
+            this.button_PredictFromModelDataList.Name = "button_PredictFromModelDataList";
+            this.button_PredictFromModelDataList.Size = new System.Drawing.Size(234, 39);
+            this.button_PredictFromModelDataList.TabIndex = 1;
+            this.button_PredictFromModelDataList.Text = "PredictFromModelDataList";
+            this.button_PredictFromModelDataList.UseVisualStyleBackColor = true;
+            this.button_PredictFromModelDataList.Click += new System.EventHandler(this.button_TrainFromFileList_Click);
+            // 
+            // trackBar_averageSize
+            // 
+            this.trackBar_averageSize.Location = new System.Drawing.Point(174, 92);
+            this.trackBar_averageSize.Maximum = 64;
+            this.trackBar_averageSize.Name = "trackBar_averageSize";
+            this.trackBar_averageSize.Size = new System.Drawing.Size(222, 56);
+            this.trackBar_averageSize.TabIndex = 2;
+            this.trackBar_averageSize.TickFrequency = 8;
+            this.trackBar_averageSize.Value = 3;
+            this.trackBar_averageSize.Scroll += new System.EventHandler(this.trackBar_averageSize_Scroll);
+            this.trackBar_averageSize.ValueChanged += new System.EventHandler(this.trackBar_threshold_Scroll);
+            // 
+            // label_averageSize
+            // 
+            this.label_averageSize.AutoSize = true;
+            this.label_averageSize.Location = new System.Drawing.Point(402, 95);
+            this.label_averageSize.Name = "label_averageSize";
+            this.label_averageSize.Size = new System.Drawing.Size(15, 15);
+            this.label_averageSize.TabIndex = 3;
+            this.label_averageSize.Text = "-";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(100, 95);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(83, 15);
+            this.label6.TabIndex = 3;
+            this.label6.Text = "averageSize";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
@@ -285,14 +343,19 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.chart_Graph);
             this.Controls.Add(this.label2);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.label_thresholdTitle);
             this.Controls.Add(this.label_chartScale);
+            this.Controls.Add(this.label_averageSize);
             this.Controls.Add(this.label_thresholdValue);
             this.Controls.Add(this.label_windowSizeValue);
             this.Controls.Add(this.label1);
+            this.Controls.Add(this.trackBar_averageSize);
             this.Controls.Add(this.trackBar_threshold);
             this.Controls.Add(this.trackBar_windowSize);
             this.Controls.Add(this.button_Predict);
+            this.Controls.Add(this.button_PredictFromModelDataList);
+            this.Controls.Add(this.button_TrainFromFileList);
             this.Controls.Add(this.button_Train);
             this.Name = "Form1";
             this.Text = "AnomalyDetectionNote";
@@ -302,6 +365,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_threshold)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart_Graph)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_chartScale)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar_averageSize)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -330,6 +394,11 @@
         private System.Windows.Forms.CheckBox checkBox_tuneMode;
         private System.Windows.Forms.TrackBar trackBar_chartScale;
         private System.Windows.Forms.Label label_chartScale;
+        private System.Windows.Forms.Button button_TrainFromFileList;
+        private System.Windows.Forms.Button button_PredictFromModelDataList;
+        private System.Windows.Forms.TrackBar trackBar_averageSize;
+        private System.Windows.Forms.Label label_averageSize;
+        private System.Windows.Forms.Label label6;
     }
 }
 

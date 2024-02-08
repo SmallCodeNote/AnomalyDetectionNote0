@@ -71,71 +71,6 @@ namespace AnomalyDetectionNote
             }
         }
 
-        private void TrainAndPredict()
-        {
-            try{
-                MLContext mlContext = new MLContext();
-                string traindataPath = textBox_TrainDataDir.Text;
-                List<string> traindataList = new List<string>();
-
-                if (File.Exists(textBox_TrainDataDir.Text)) { traindataList.Add(traindataPath); }
-                else if (Directory.Exists(textBox_TrainDataDir.Text))
-                {
-                    traindataList.AddRange(Directory.GetFiles(traindataPath, "*.csv", SearchOption.AllDirectories));
-                }
-
-                if (!(traindataList.Count() > 0)) return;
-
-                string predictdataPath = textBox_PredictDataDir.Text;
-
-                double windowSizeIndex = trackBar_windowSize.Value;
-                double thresholdParam = (trackBar_threshold.Value / 10.0);
-
-
-                // 異常検出パイプラインの定義
-                int windowSizeParam = (int)Math.Pow(2, windowSizeIndex);
-                var pipeline = mlContext.Transforms.DetectAnomalyBySrCnn(outputColumnName: "Prediction", inputColumnName: "value", windowSize: windowSizeParam, judgementWindowSize: windowSizeParam, threshold: thresholdParam);
-
-                //SrCnnAnomalyDetector model;
-
-                //foreach (var trainfile in traindataList) { 
-                string trainfile = traindataList[0];
-                // Load Data
-                SetChartGraphLine(File.ReadAllText(trainfile));
-                IDataView dataView = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: trainfile, hasHeader: true, separatorChar: ',');
-
-                // モデルの訓練
-                var model = pipeline.Fit(dataView);
-
-                //}
-
-                SetChartGraphLine(File.ReadAllText(predictdataPath));
-                IDataView dataView2 = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: predictdataPath, hasHeader: true, separatorChar: ',');
-
-                // 異常検出の実行
-                var transformedData = model.Transform(dataView2);
-
-                // 結果の取得
-                var predictions = mlContext.Data.CreateEnumerable<TimeSeriesPrediction>(transformedData, reuseRowObject: false).ToList();
-
-                // 結果の表示
-                foreach (var p in predictions)
-                {
-                    Console.WriteLine($"Prediction: {p.Prediction[0]}");
-                }
-
-                chartGraph_Point.Points.Clear();
-                for (int dataIndex = 0; dataIndex < predictions.Count; dataIndex++)
-                {
-                    if ((predictions[dataIndex]).Prediction[0] > 0.3)
-                    {
-                        chartGraph_Point.Points.Add(chartGraph_Line.Points[dataIndex]);
-                    }
-                }
-            }catch { }
-
-        }
-
         private void button_Train_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd_TrainData = new OpenFileDialog();
@@ -212,28 +147,6 @@ namespace AnomalyDetectionNote
             }
 
 
-        }
-
-        private void trackBar_threshold_Scroll(object sender, EventArgs e)
-        {
-            label_thresholdValue.Text = (((TrackBar)sender).Value / 10.0).ToString();
-
-            if (checkBox_tuneMode.Checked)
-            {
-                TrainAndPredict();
-
-            }
-        }
-
-        private void trackBar_windowSize_Scroll(object sender, EventArgs e)
-        {
-            label_windowSizeValue.Text = Math.Pow(2, ((TrackBar)sender).Value).ToString();
-
-            if (checkBox_tuneMode.Checked)
-            {
-                TrainAndPredict();
-
-            }
         }
 
         Series chartGraph_Line;
@@ -319,6 +232,146 @@ namespace AnomalyDetectionNote
         {
             label_chartScale.Text = trackBar_chartScale.Value.ToString();
             chart_Graph.ChartAreas[0].AxisX.ScaleView.Size = trackBar_chartScale.Value;
+        }
+
+        private void button_TrainFromFileList_Click(object sender, EventArgs e)
+        {
+            string traindataPath = textBox_TrainDataDir.Text;
+            List<string> traindataList = new List<string>();
+
+            double windowSizeIndex = trackBar_windowSize.Value;
+            int windowSizeParam = (int)Math.Pow(2, windowSizeIndex);
+
+            double thresholdParam = (trackBar_threshold.Value / 10.0);
+
+            if (File.Exists(textBox_TrainDataDir.Text))
+            {
+                traindataList.Add(traindataPath);
+            }
+            else if (Directory.Exists(textBox_TrainDataDir.Text))
+            {
+                traindataList.AddRange(Directory.GetFiles(traindataPath, "*.csv", SearchOption.AllDirectories));
+            }
+
+            if (!(traindataList.Count() > 0)) return;
+
+
+            // 異常検出パイプラインの定義
+            MLContext mlContext = new MLContext();
+            var pipeline = mlContext.Transforms.DetectAnomalyBySrCnn(outputColumnName: "Prediction", inputColumnName: "value", windowSize: windowSizeParam, judgementWindowSize: windowSizeParam, threshold: thresholdParam);
+
+            foreach (var trainfile in traindataList)
+            {
+                // Load Data
+                SetChartGraphLine(File.ReadAllText(trainfile));
+                IDataView dataView = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: trainfile, hasHeader: true, separatorChar: ',');
+
+                // モデルの訓練
+                var model = pipeline.Fit(dataView);
+                mlContext.Model.Save(model, dataView.Schema, Path.Combine(Path.GetDirectoryName(trainfile), Path.GetFileNameWithoutExtension(trainfile) + ".zip"));
+            }
+
+        }
+
+        private void TrainAndPredict()
+        {
+            try
+            {
+                MLContext mlContext = new MLContext();
+                string traindataPath = textBox_TrainDataDir.Text;
+                List<string> traindataList = new List<string>();
+
+                if (File.Exists(textBox_TrainDataDir.Text)) { traindataList.Add(traindataPath); }
+                else if (Directory.Exists(textBox_TrainDataDir.Text))
+                {
+                    traindataList.AddRange(Directory.GetFiles(traindataPath, "*.csv", SearchOption.AllDirectories));
+                }
+
+                if (!(traindataList.Count() > 0)) return;
+
+                string predictdataPath = textBox_PredictDataDir.Text;
+
+                double windowSizeIndex = trackBar_windowSize.Value;
+                int windowSizeParam = (int)Math.Pow(2, windowSizeIndex);
+                double thresholdParam = (trackBar_threshold.Value / 10.0);
+                int averagingWindowSize = (int)trackBar_averageSize.Value;
+
+
+                // 異常検出パイプラインの定義
+                var pipeline = mlContext.Transforms.DetectAnomalyBySrCnn(outputColumnName: "Prediction", inputColumnName: "value", windowSize: windowSizeParam, judgementWindowSize: windowSizeParam, threshold: thresholdParam,averagingWindowSize: averagingWindowSize);
+
+                //SrCnnAnomalyDetector model;
+
+                //foreach (var trainfile in traindataList) { 
+                string trainfile = traindataList[0];
+                // Load Data
+                SetChartGraphLine(File.ReadAllText(trainfile));
+                IDataView dataView = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: trainfile, hasHeader: true, separatorChar: ',');
+
+                // モデルの訓練
+                var model = pipeline.Fit(dataView);
+
+                //}
+
+                SetChartGraphLine(File.ReadAllText(predictdataPath));
+                IDataView dataView2 = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: predictdataPath, hasHeader: true, separatorChar: ',');
+
+                // 異常検出の実行
+                var transformedData = model.Transform(dataView2);
+
+                // 結果の取得
+                var predictions = mlContext.Data.CreateEnumerable<TimeSeriesPrediction>(transformedData, reuseRowObject: false).ToList();
+
+                // 結果の表示
+                foreach (var p in predictions)
+                {
+                    Console.WriteLine($"Prediction: {p.Prediction[0]}");
+                }
+
+                chartGraph_Point.Points.Clear();
+                for (int dataIndex = 0; dataIndex < predictions.Count; dataIndex++)
+                {
+                    if ((predictions[dataIndex]).Prediction[0] > 0.3)
+                    {
+                        chartGraph_Point.Points.Add(chartGraph_Line.Points[dataIndex]);
+                    }
+                }
+            }
+            catch { }
+
+        }
+
+        private void trackBar_threshold_Scroll(object sender, EventArgs e)
+        {
+            label_thresholdValue.Text = (trackBar_threshold.Value / 10.0).ToString();
+
+            if (checkBox_tuneMode.Checked)
+            {
+                TrainAndPredict();
+
+            }
+        }
+
+        private void trackBar_windowSize_Scroll(object sender, EventArgs e)
+        {
+            label_windowSizeValue.Text = ((int)(Math.Pow(2, (trackBar_windowSize.Value)))).ToString();
+
+            if (checkBox_tuneMode.Checked)
+            {
+                TrainAndPredict();
+
+            }
+        }
+
+        private void trackBar_averageSize_Scroll(object sender, EventArgs e)
+        {
+            label_averageSize.Text = (trackBar_averageSize.Value).ToString();
+
+            if (checkBox_tuneMode.Checked)
+            {
+                TrainAndPredict();
+
+            }
         }
     }
 
