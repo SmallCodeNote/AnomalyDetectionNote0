@@ -110,16 +110,18 @@ namespace WinFormStringCnvClass
         /// <param name="value"></param>
         static void setControlFromString(Control c, string value)
         {
-
-            if (c is TextBox) ((TextBox)c).Text = deEscape(value);
-            else if (c is ListBox) ((ListBox)c).Text = deEscape(value);
-            else if (c is ComboBox) ((ComboBox)c).Text = deEscape(value);
-            else if (c is NumericUpDown) ((NumericUpDown)c).Value = decimal.Parse(value);
-            else if (c is TrackBar) ((TrackBar)c).Value = int.Parse(value);
-            else if (c is DataGridView) setDataGridViewFromString((DataGridView)c, value);
-            else if (c is CheckBox) ((CheckBox)c).Checked = bool.Parse(value);
-            else if (c is RadioButton) ((RadioButton)c).Checked = bool.Parse(value);
-
+            try
+            {
+                if (c is TextBox) ((TextBox)c).Text = deEscape(value);
+                else if (c is ListBox) ((ListBox)c).Text = deEscape(value);
+                else if (c is ComboBox) ((ComboBox)c).Text = deEscape(value);
+                else if (c is NumericUpDown) ((NumericUpDown)c).Value = decimal.Parse(value);
+                else if (c is TrackBar) ((TrackBar)c).Value = int.Parse(value);
+                else if (c is DataGridView) setDataGridViewFromString((DataGridView)c, value);
+                else if (c is CheckBox) ((CheckBox)c).Checked = bool.Parse(value);
+                else if (c is RadioButton) ((RadioButton)c).Checked = bool.Parse(value);
+            }
+            catch { }
 
             return;
         }

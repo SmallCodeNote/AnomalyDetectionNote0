@@ -71,11 +71,76 @@ namespace AnomalyDetectionNote
             }
         }
 
+        private void TrainAndPredict()
+        {
+            try{
+                MLContext mlContext = new MLContext();
+                string traindataPath = textBox_TrainDataDir.Text;
+                List<string> traindataList = new List<string>();
+
+                if (File.Exists(textBox_TrainDataDir.Text)) { traindataList.Add(traindataPath); }
+                else if (Directory.Exists(textBox_TrainDataDir.Text))
+                {
+                    traindataList.AddRange(Directory.GetFiles(traindataPath, "*.csv", SearchOption.AllDirectories));
+                }
+
+                if (!(traindataList.Count() > 0)) return;
+
+                string predictdataPath = textBox_PredictDataDir.Text;
+
+                double windowSizeIndex = trackBar_windowSize.Value;
+                double thresholdParam = (trackBar_threshold.Value / 10.0);
+
+
+                // 異常検出パイプラインの定義
+                int windowSizeParam = (int)Math.Pow(2, windowSizeIndex);
+                var pipeline = mlContext.Transforms.DetectAnomalyBySrCnn(outputColumnName: "Prediction", inputColumnName: "value", windowSize: windowSizeParam, judgementWindowSize: windowSizeParam, threshold: thresholdParam);
+
+                //SrCnnAnomalyDetector model;
+
+                //foreach (var trainfile in traindataList) { 
+                string trainfile = traindataList[0];
+                // Load Data
+                SetChartGraphLine(File.ReadAllText(trainfile));
+                IDataView dataView = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: trainfile, hasHeader: true, separatorChar: ',');
+
+                // モデルの訓練
+                var model = pipeline.Fit(dataView);
+
+                //}
+
+                SetChartGraphLine(File.ReadAllText(predictdataPath));
+                IDataView dataView2 = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: predictdataPath, hasHeader: true, separatorChar: ',');
+
+                // 異常検出の実行
+                var transformedData = model.Transform(dataView2);
+
+                // 結果の取得
+                var predictions = mlContext.Data.CreateEnumerable<TimeSeriesPrediction>(transformedData, reuseRowObject: false).ToList();
+
+                // 結果の表示
+                foreach (var p in predictions)
+                {
+                    Console.WriteLine($"Prediction: {p.Prediction[0]}");
+                }
+
+                chartGraph_Point.Points.Clear();
+                for (int dataIndex = 0; dataIndex < predictions.Count; dataIndex++)
+                {
+                    if ((predictions[dataIndex]).Prediction[0] > 0.3)
+                    {
+                        chartGraph_Point.Points.Add(chartGraph_Line.Points[dataIndex]);
+                    }
+                }
+            }catch { }
+
+        }
+
         private void button_Train_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd_TrainData = new OpenFileDialog();
             ofd_TrainData.Title = "TrainData";
-            ofd_TrainData.Filter = "TEXT|*.txt|CSV|*.csv|TSV|*.tsv";
+            ofd_TrainData.Filter = "CSV|*.csv";
             if (ofd_TrainData.ShowDialog() != DialogResult.OK) return;
 
             SaveFileDialog sfd_ModelFile = new SaveFileDialog();
@@ -84,16 +149,21 @@ namespace AnomalyDetectionNote
             sfd_ModelFile.FileName = "model.zip";
             if (sfd_ModelFile.ShowDialog() != DialogResult.OK) return;
 
+
+            double windowSizeIndex = trackBar_windowSize.Value;
+            double thresholdParam = (trackBar_threshold.Value / 10.0);
+            int windowSizeParam = (int)Math.Pow(2, windowSizeIndex);
+
             MLContext mlContext = new MLContext();
+
+
+            // 異常検出パイプラインの定義
+            var pipeline = mlContext.Transforms.DetectAnomalyBySrCnn(outputColumnName: "Prediction", inputColumnName: "value", windowSize: windowSizeParam, judgementWindowSize: windowSizeParam, threshold: thresholdParam);
+
 
             // Load Data
             SetChartGraphLine(File.ReadAllText(ofd_TrainData.FileName));
-            IDataView dataView = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: ofd_TrainData.FileName, hasHeader: true, separatorChar: '\t');
-
-            // 異常検出パイプラインの定義
-            int windowSizeParam = (int)Math.Pow(2, ((TrackBar)sender).Value);
-            double thresholdParam = (((TrackBar)sender).Value / 10.0);
-            var pipeline = mlContext.Transforms.DetectAnomalyBySrCnn(outputColumnName: "Prediction", inputColumnName: "value", windowSize: windowSizeParam, judgementWindowSize: windowSizeParam, threshold: thresholdParam);
+            IDataView dataView = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: ofd_TrainData.FileName, hasHeader: true, separatorChar: ',');
 
             // モデルの訓練
             var model = pipeline.Fit(dataView);
@@ -111,14 +181,14 @@ namespace AnomalyDetectionNote
 
             OpenFileDialog ofd_LoadData = new OpenFileDialog();
             ofd_LoadData.Title = "LoadData";
-            ofd_LoadData.Filter = "TEXT|*.txt|CSV|*.csv|TSV|*.tsv";
+            ofd_LoadData.Filter = "CSV|*.csv";
             if (ofd_LoadData.ShowDialog() != DialogResult.OK) return;
 
             MLContext mlContext = new MLContext();
             ITransformer model = mlContext.Model.Load(ofd_LoadModel.FileName, out var modelSchema);
 
             SetChartGraphLine(File.ReadAllText(ofd_LoadData.FileName));
-            IDataView dataView2 = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: ofd_LoadData.FileName, hasHeader: true, separatorChar: '\t');
+            IDataView dataView2 = mlContext.Data.LoadFromTextFile<TimeSeriesData>(path: ofd_LoadData.FileName, hasHeader: true, separatorChar: ',');
 
             // 異常検出の実行
             var transformedData = model.Transform(dataView2);
@@ -132,6 +202,7 @@ namespace AnomalyDetectionNote
                 Console.WriteLine($"Prediction: {p.Prediction[0]}");
             }
 
+            chartGraph_Point.Points.Clear();
             for (int dataIndex = 0; dataIndex < predictions.Count; dataIndex++)
             {
                 if ((predictions[dataIndex]).Prediction[0] > 0.3)
@@ -146,11 +217,23 @@ namespace AnomalyDetectionNote
         private void trackBar_threshold_Scroll(object sender, EventArgs e)
         {
             label_thresholdValue.Text = (((TrackBar)sender).Value / 10.0).ToString();
+
+            if (checkBox_tuneMode.Checked)
+            {
+                TrainAndPredict();
+
+            }
         }
 
         private void trackBar_windowSize_Scroll(object sender, EventArgs e)
         {
             label_windowSizeValue.Text = Math.Pow(2, ((TrackBar)sender).Value).ToString();
+
+            if (checkBox_tuneMode.Checked)
+            {
+                TrainAndPredict();
+
+            }
         }
 
         Series chartGraph_Line;
@@ -169,23 +252,23 @@ namespace AnomalyDetectionNote
             var chartArea = new ChartArea("ChartArea1");
             chart_Graph.ChartAreas.Clear();
             chart_Graph.ChartAreas.Add(chartArea);
-            chartArea.AxisX.LabelStyle.Format = "yyyy/MM";
+            chartArea.AxisX.LabelStyle.Format = "";
             chartArea.AxisX.Title = "Time";
+            chartArea.AxisX.Minimum = 0;
             chartArea.AxisY.Title = "Value";
 
         }
 
         private void SetChartGraphLine(string data)
         {
-
             string[] lines = data.Replace("\r\n", "\n").Split('\n');
 
-
+            chartGraph_Line.Points.Clear();
             foreach (var line in lines)
             {
                 if (line.StartsWith("time")) continue; // Skip the header line
 
-                var parts = line.Split('\t');
+                var parts = line.Split(',');
                 if (parts.Length != 2) continue; // Skip lines with wrong format
 
                 string time = parts[0];
@@ -194,11 +277,9 @@ namespace AnomalyDetectionNote
                 chartGraph_Line.Points.AddXY(time, value);
             }
 
-        }
-
-        private void SetChartGraphPoint(string time, double value)
-        {
-            chartGraph_Point.Points.AddXY(time, value);
+            trackBar_chartScale.Maximum = chartGraph_Line.Points.Count();
+            trackBar_chartScale.Value = chartGraph_Line.Points.Count();
+            trackBar_chartScale.TickFrequency = trackBar_chartScale.Maximum / 10;
 
         }
 
@@ -217,12 +298,34 @@ namespace AnomalyDetectionNote
             textBox_ModelFilePath.Text = ofd.FileName;
 
         }
+
+        private void button_TrainDataDir_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "CSV|*.csv";
+            if (ofd.ShowDialog() != DialogResult.OK) return;
+
+            if (sender == button_TrainDataDir)
+            {
+                textBox_TrainDataDir.Text = ofd.FileName;
+            }
+            else if (sender == button_PredictDataDir)
+            {
+                textBox_PredictDataDir.Text = ofd.FileName;
+            }
+        }
+
+        private void trackBar_chartScale_Scroll(object sender, EventArgs e)
+        {
+            label_chartScale.Text = trackBar_chartScale.Value.ToString();
+            chart_Graph.ChartAreas[0].AxisX.ScaleView.Size = trackBar_chartScale.Value;
+        }
     }
 
     public class TimeSeriesData
     {
         [LoadColumn(0)]
-        public string time;
+        public int time;
 
         [LoadColumn(1)]
         public float value;
